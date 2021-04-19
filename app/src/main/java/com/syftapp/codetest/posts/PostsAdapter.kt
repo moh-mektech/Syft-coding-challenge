@@ -56,6 +56,9 @@ class PostsAdapter(private val presenter: PostsPresenter) : RecyclerView.Adapter
         val post = differ.currentList[position]
         holder.bind(post)
 
+        if(!previousList.contains(post)) {
+            holder.itemView.animation = AnimationUtils.loadAnimation(holder.itemView.context, R.anim.item_animation_fall_down)
+        }
         if (position == differ.currentList.size - 1) presenter.getMoreItems(differ.currentList.size)
     }
 
