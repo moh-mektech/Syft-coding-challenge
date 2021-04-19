@@ -46,23 +46,23 @@ class BlogRepositoryTest {
     }
 
     @Test
-    fun `get posts returns cached values if available`() {
-        every { postDao.getAll() } returns Single.just(listOf(anyPost))
+    fun `get posts never checks stored values`() {
+        every { blogApi.getPosts(any(), any()) } returns Single.just(listOf(anyPost))
 
-        val observer = sut.getPosts().test()
+        val observer = sut.getPosts(1, 5).test()
         observer.assertValue(listOf(anyPost))
-        verify(exactly = 0) { blogApi.getPosts() }
+        verify(exactly = 0) { postDao.getAll() }
     }
 
     @Test
     fun `posts value fetched from api is inserted to the cache`() {
         every { postDao.getAll() } returns Single.just(listOf())
-        every { blogApi.getPosts() } returns Single.just(listOf(anyPost))
+        every { blogApi.getPosts(any(), any()) } returns Single.just(listOf(anyPost))
 
-        sut.getPosts().test()
+        sut.getPosts(1, 5).test()
 
         verify {
-            blogApi.getPosts()
+            blogApi.getPosts(1, 5)
             postDao.insertAll(*listOf(anyPost).toTypedArray())
         }
     }
@@ -84,10 +84,10 @@ class BlogRepositoryTest {
     fun `value from api is returned to caller`() {
         every { userDao.getAll() } returns Single.just(listOf())
         every { postDao.getAll() } returns Single.just(listOf())
-        every { blogApi.getPosts() } returns Single.just(listOf(anyPost))
+        every { blogApi.getPosts(any(), any()) } returns Single.just(listOf(anyPost))
         every { blogApi.getUsers() } returns Single.just(listOf(anyUser))
 
-        val postObserver = sut.getPosts().test()
+        val postObserver = sut.getPosts(1, 5).test()
         val userObserver = sut.getUsers().test()
 
         postObserver.assertValue(listOf(anyPost))
@@ -96,12 +96,10 @@ class BlogRepositoryTest {
 
     @Test
     fun `api failing returns reactive error on chain`() {
-        every { postDao.getAll() } returns Single.just(listOf())
         val error = Throwable()
-        every { blogApi.getPosts() } throws error
+        every { blogApi.getPosts(any(), any()) } throws error
 
-        val observer = sut.getPosts().test()
-
+        val observer = sut.getPosts(1, 5).test()
         observer.assertError(error)
     }
 }

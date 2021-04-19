@@ -6,6 +6,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
 import io.mockk.verifyOrder
 import io.reactivex.Single
 import org.junit.Before
@@ -33,11 +34,13 @@ class PostsPresenterTest {
 
     @Test
     fun `binding loads posts`() {
-        every { getPostsUseCase.execute() } returns Single.just(listOf(anyPost))
+        every { getPostsUseCase.execute(any()) } returns Single.just(listOf(anyPost))
 
         sut.bind(view)
 
+
         verifyOrder {
+            getPostsUseCase.execute(1)
             view.render(any<PostScreenState.Loading>())
             view.render(any<PostScreenState.DataAvailable>())
             view.render(any<PostScreenState.FinishedLoading>())
@@ -46,7 +49,7 @@ class PostsPresenterTest {
 
     @Test
     fun `error on binding shows error state after loading`() {
-        every { getPostsUseCase.execute() } returns Single.error(Throwable())
+        every { getPostsUseCase.execute(any()) } returns Single.error(Throwable())
 
         sut.bind(view)
 
@@ -55,5 +58,13 @@ class PostsPresenterTest {
             view.render(any<PostScreenState.Error>())
             view.render(any<PostScreenState.FinishedLoading>())
         }
+    }
+
+    @Test
+    fun `on load more called should fetch new page`() {
+        every { getPostsUseCase.execute(any()) } returns Single.just(listOf(anyPost))
+        sut.bind(view)
+        sut.getMoreItems(8)
+        verify { getPostsUseCase.execute(2) }
     }
 }

@@ -7,11 +7,15 @@ import org.koin.core.KoinComponent
 
 class GetPostsUseCase(private val repository: BlogRepository) : KoinComponent {
 
-    fun execute(): Single<List<Post>> {
+    companion object {
+        const val MAX_ITEMS_PER_PAGE = 5
+    }
+
+    fun execute(page: Int): Single<List<Post>> {
         // users must be available for the blog posts
         return repository.getUsers()
             .ignoreElement()
-            .andThen(repository.getPosts())
+            .andThen(repository.getPosts(page, MAX_ITEMS_PER_PAGE))
     }
 
 }

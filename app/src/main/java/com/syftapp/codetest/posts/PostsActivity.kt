@@ -29,6 +29,10 @@ class PostsActivity : AppCompatActivity(), PostsView, KoinComponent {
         listOfPosts.addItemDecoration(separator)
 
         presenter.bind(this)
+        adapter = PostsAdapter(presenter)
+
+        listOfPosts.adapter = adapter
+        listOfPosts.visibility = View.VISIBLE
     }
 
     override fun onDestroy() {
@@ -48,7 +52,6 @@ class PostsActivity : AppCompatActivity(), PostsView, KoinComponent {
 
     private fun showLoading() {
         error.visibility = View.GONE
-        listOfPosts.visibility = View.GONE
         loading.visibility = View.VISIBLE
     }
 
@@ -57,16 +60,12 @@ class PostsActivity : AppCompatActivity(), PostsView, KoinComponent {
     }
 
     private fun showPosts(posts: List<Post>) {
-        // this is a fairly crude implementation, if it was Flowable, it would
-        // be better to use DiffUtil and consider notifyRangeChanged, notifyItemInserted, etc
-        // to preserve animations on the RecyclerView
-        adapter = PostsAdapter(posts, presenter)
-        listOfPosts.adapter = adapter
-        listOfPosts.visibility = View.VISIBLE
+        adapter.submitList(posts)
     }
 
     private fun showError(message: String) {
+        listOfPosts.visibility = View.GONE
         error.visibility = View.VISIBLE
-        error.setText(message)
+        error.text = message
     }
 }

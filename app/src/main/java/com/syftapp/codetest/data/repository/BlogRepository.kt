@@ -35,16 +35,32 @@ class BlogRepository(
         )
     }
 
-    override fun getPosts(): Single<List<Post>> {
-        return fetchData(
-            local = { postDao.getAll() },
-            remote = { blogApi.getPosts() },
+    override fun getPosts(page: Int, itemsPerPage: Int): Single<List<Post>> {
+        // ignoring the local repository for now
+        // because using fetchData as it is would not work with Pagination
+
+        return fetchDataFromApi(
+            remote = { blogApi.getPosts(page, itemsPerPage) },
             insert = { value -> postDao.insertAll(*value.toTypedArray()) }
         )
     }
 
     fun getPost(postId: Int): Maybe<Post> {
         return postDao.get(postId)
+    }
+
+    private fun <T> fetchDataFromApi(
+        remote: () -> Single<List<T>>,
+        insert: (insertValue: List<T>) -> Completable
+    ): Single<List<T>> {
+        return try {
+            remote.invoke().flatMap { value ->
+                insert.invoke(value).subscribe();
+                Single.just(value)
+            }
+        } catch (error: Throwable) {
+            Single.error(error)
+        }
     }
 
     private fun <T> fetchData(

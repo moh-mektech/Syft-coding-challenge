@@ -12,6 +12,6 @@ class BlogApi(private val blogService: BlogService) : BlogDataProvider {
 
     override fun getComments() = blogService.getComments().map { it.apiToDomain(CommentMapper) }
 
-    override fun getPosts() = blogService.getPosts().map { it.apiToDomain(PostMapper) }
+    override fun getPosts(page: Int, itemsPerPage: Int) = blogService.getPosts(page, itemsPerPage).map { it.apiToDomain(PostMapper) }
 
 }

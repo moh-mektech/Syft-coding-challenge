@@ -83,9 +83,9 @@ class BlogApiTest {
             )
         )
 
-        every { blogService.getPosts() } returns Single.just(mockPosts)
-        val apiPost = rxValue(blogService.getPosts())[0]
-        val posts = rxValue(sut.getPosts())
+        every { blogService.getPosts(any(), any()) } returns Single.just(mockPosts)
+        val apiPost = rxValue(blogService.getPosts(1, 5))[0]
+        val posts = rxValue(sut.getPosts(1, 5))
 
         assertThat(posts)
             .hasSize(3)
